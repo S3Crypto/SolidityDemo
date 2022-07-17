@@ -1,6 +1,8 @@
 pragma solidity >=0.5.0 <0.6.0;
 import "./ObjectFactory.sol";
 contract KittyInterface {
+  //Reference external Kitty function.
+  //View to see data internal variables read-only
   function getKitty(uint256 _id) external view returns (
     bool isGestating,
     bool isReady,
@@ -16,12 +18,16 @@ contract KittyInterface {
 }
 contract ObjectInteraction is ObjectFactory {
   address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
+  //Intitialise Interface to interact with external contract
   KittyInterface kittyContract = KittyInterface(ckAddress);
   function interactAndMultiply(uint _objectId, uint _targetDna, string memory _species) public {
+    //Validate the caller is the owner of the Object.
     require(msg.sender == objectToOwner[_objectId]);
+    //Store the new object on-chain
     Object storage myObject = objects[_objectId];
     _targetDna = _targetDna % dnaModulus;
     uint newDna = (myObject.dna + _targetDna) / 2;
+    //Ensure inherited dna is of the species kitty, for CryptoKitty example
     if (keccak256(abi.encodePacked(_species)) == keccak256(abi.encodePacked("kitty"))) {
       newDna = newDna - newDna % 100 + 99;
     }
