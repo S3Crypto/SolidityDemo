@@ -1,26 +1,38 @@
 pragma solidity >=0.5.0 <0.6.0;
 contract ObjectFactory {
     event NewObject(uint objectId, string name, uint dna);
+    //Length of dna
     uint dnaDigits = 16;
+    //10 to the power of dna length
     uint dnaModulus = 10 ** dnaDigits;
     struct Object {
         string name;
         uint dna;
     }
     Object[] public objects;
+    //Key Value pair to connect object to owner address
     mapping (uint => address) public objectToOwner;
+    //Map an Object count to an address
     mapping (address => uint) ownerObjectCount;
     function _createObject(string _name, uint _dna) internal {
+        //Push an Object object onto the dynamic array, set id to it's 
         uint id = objects.push(Object(_name, _dna)) - 1;
+        //Map the object id to the owners address and add 1 
         objectToOwner[id] = msg.sender;
         ownerObjectCount[msg.sender]++;
+        //Announce new Object created event
         emit NewObject(id, _name, _dna);
     }
+    //Private Function to generate random uint. 
+    //Pass string by value to avoid altering data and restrict to "view"
     function _generateRandomDna(string memory _str) private view returns (uint) {
+        //Typecast string to bytes, then use keccak256 to map to 256-bit hex
         uint rand = uint(keccak256(abi.encodePacked(_str)));
+        //Only return the last 16 digits, defined by dnaDigits
         return rand % dnaModulus;
     }
     function createRandomObject(string memory _name) public {
+        //Ensure only 1 Object can be created per address
         require(ownerObjectCount[msg.sender] == 0);
         uint randDna = _generateRandomDna(_name);
         randDna = randDna - randDna % 100;
