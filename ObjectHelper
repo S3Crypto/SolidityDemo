@@ -1,1 +1,32 @@
-
+pragma solidity >=0.5.0 <0.6.0;
+import "./ObjectInteraction.sol";
+contract ObjectHelper is ObjectInteraction {
+  //Declare function modifier to require level for interaction
+  modifier aboveLevel(uint _level, uint _objectId) {
+    require(objects[_objectId].level >= _level);
+    _;
+  }
+  //Function to change on objects name, object must be level>=2 & Owner must be sender
+  function changeName(uint _objectId, string calldata _newName) external aboveLevel(2, _objectId) {
+    require(msg.sender == objectToOwner[_objectId]);
+    objects[_objectId].name = _newName;
+  }
+  //Function to change on objects dna, object must be level>=20 & Owner must be sender
+  function changeDna(uint _objectId, uint _newDna) external aboveLevel(20, _objectId) {
+    require(msg.sender == objectToOwner[_objectId]);
+    objects[_objectId].dna = _newDna;
+  }
+  //Return uint array of all Objects owned by owner
+  function getObjectsByOwner(address _owner) external view returns(uint[] memory) {
+    //Declare result variable as uint Array with size equal to the Object count of the owner.
+    uint[] memory result = new uint[](ownerObjectCount[_owner]);
+    uint counter = 0;
+    for (uint i = 0; i < objects.length; i++) {
+      if (objectToOwner[i] == _owner) {
+        result[counter] = i;
+        counter++;
+      }
+    }
+    return result;
+  }
+}
